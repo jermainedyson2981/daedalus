@@ -72,7 +72,7 @@ let
       key = "mainnet_dryrun_wallet_macos64";
     };
     devnet = {
-      key = "devnet";
+      key = "devnet_macos64";
     };
   };
   launcherConfig = writeText "launcher-config.json" (builtins.toJSON {
