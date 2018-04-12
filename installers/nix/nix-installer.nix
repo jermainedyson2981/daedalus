@@ -35,7 +35,7 @@ let
     UNPACK=$(mktemp -d)
     cd $UNPACK
     echo "$@"
-    "$1" --extract
+    bash "$1" --extract
     ls -ltrh dat/nix/store/*-tarball/tarball/tarball.tar.xz
     UNPACK2=$(mktemp -d)
     tar -C $UNPACK2 -xf dat/nix/store/*-tarball/tarball/tarball.tar.xz
@@ -75,6 +75,9 @@ let
     ln -svf /nix/var/nix/profiles/profile/bin/ /bin
     ln -svf ${pkgs.iana-etc}/etc/protocols /etc/protocols
     ln -svf ${pkgs.iana-etc}/etc/services /etc/services
+    mkdir -pv /etc/ssl/certs
+    ln -svf ${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-certificates.crt
+    ln -svf ${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt /etc/ssl/certs/ca-bundle.crt
 
     if [ -z "$@" ]; then
       exec bash

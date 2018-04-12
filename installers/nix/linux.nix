@@ -5,7 +5,7 @@ rawapp, daedalus-bridge }:
 let
   # closure size TODO list
   # electron depends on cups, which depends on avahi
-  daedalus_frontend = writeScriptBin "daedalus" ''
+  daedalus_frontend = writeScriptBin "daedalus-frontend" ''
     #!${stdenv.shell}
 
     test -z "$XDG_DATA_HOME" && { XDG_DATA_HOME="''${HOME}/.local/share"; }
@@ -76,12 +76,12 @@ let
     };
   };
   launcherConfig = writeText "launcher-config.json" (builtins.toJSON {
-    nodePath = "${daedalus-bridge}/bin/cardano-node";
+    nodePath = "cardano-node";
     nodeArgs = [
       "--update-latest-path" "$HOME/.local/share/Daedalus/${cluster}/installer.sh"
       "--keyfile" "Secrets/secret.key"
       "--wallet-db-path" "Wallet/"
-      "--update-server" "https://update-cardano-mainnet.iohk.io"
+      "--update-server" "http://update-cardano-mainnet.iohk.io"
       "--update-with-package"
       "--tlscert" "tls/server/server.crt"
       "--tlskey" "tls/server/server.key"
@@ -106,13 +106,15 @@ let
     updateWindowsRunner = null;
     nodeTimeoutSec = 30;
     launcherLogsPrefix = "$HOME/.local/share/Daedalus/${cluster}/Logs/";
-    walletPath = "${daedalus_frontend}/bin/daedalus";
+    walletPath = "daedalus-frontend";
     walletArgs = [];
   });
   daedalus = writeScriptBin "daedalus" ''
     #!${stdenv.shell}
 
     set -xe
+
+    export PATH="${daedalus_frontend}/bin/:${daedalus-bridge}/bin:$PATH"
 
     test -z "$XDG_DATA_HOME" && { XDG_DATA_HOME="''${HOME}/.local/share"; }
     export CLUSTER=${cluster}
