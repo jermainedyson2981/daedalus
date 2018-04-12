@@ -16,4 +16,5 @@ let
 in {
   mainnet = makeJobs "mainnet";
   staging = makeJobs "staging";
+  devnet = makeJobs "devnet";
 }

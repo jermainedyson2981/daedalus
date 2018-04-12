@@ -22,7 +22,7 @@ let
   configFiles = runCommand "cardano-config" {} ''
     mkdir -pv $out
     cd $out
-    cp -vi ${daedalus-bridge}/config/configuration.yaml configuration.yaml
+    cp -vi ${../../configuration.yaml} configuration.yaml
     cp -vi ${daedalus-bridge}/config/mainnet-genesis-dryrun-with-stakeholders.json mainnet-genesis-dryrun-with-stakeholders.json
     cp -vi ${daedalus-bridge}/config/mainnet-genesis.json mainnet-genesis.json
     cp -vi ${daedalus-bridge}/config/log-config-prod.yaml daedalus.yaml
@@ -52,6 +52,17 @@ let
         valency: 1
         fallbacks: 7
     '';
+    devnet = writeText "topology.yaml" ''
+      wallet:
+        relays:
+          [
+            [
+              { addr: 13.230.169.36 }
+            ]
+          ]
+        valency: 1
+        fallbacks: 7
+    '';
   };
   perClusterConfig = {
     mainnet = {
@@ -59,6 +70,9 @@ let
     };
     staging = {
       key = "mainnet_dryrun_wallet_macos64";
+    };
+    devnet = {
+      key = "devnet";
     };
   };
   launcherConfig = writeText "launcher-config.json" (builtins.toJSON {
@@ -69,13 +83,13 @@ let
       "--wallet-db-path" "Wallet/"
       "--update-server" "https://update-cardano-mainnet.iohk.io"
       "--update-with-package"
-      "--no-ntp"
       "--tlscert" "tls/server/server.crt"
       "--tlskey" "tls/server/server.key"
       "--tlsca" "tls/ca/ca.crt"
       "--topology" "${configFiles}/topology.yaml"
       "--wallet-address" "127.0.0.1:8090"
       "--logs-prefix" "Logs"
+      "--system-start" "1523531058"
     ];
     nodeDbPath = "DB/";
     nodeLogConfig = "${configFiles}/daedalus.yaml";
@@ -84,7 +98,7 @@ let
     configuration = {
       filePath = "${configFiles}/configuration.yaml";
       key = perClusterConfig.${cluster}.key;
-      systemStart = null;
+      systemStart = 1523531058;
       seed = null;
     };
     updaterPath = "/bin/update-runner";
