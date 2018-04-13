@@ -104,7 +104,7 @@ let
     updaterPath = if sandboxed then "/bin/update-runner" else "/no-updates";
     updateArchive = "$HOME/.local/share/Daedalus/${cluster}/installer.sh";
     updateWindowsRunner = null;
-    nodeTimeoutSec = 30;
+    nodeTimeoutSec = 60;
     launcherLogsPrefix = "$HOME/.local/share/Daedalus/${cluster}/Logs/";
     walletPath = "daedalus-frontend";
     walletArgs = [];
