@@ -81,7 +81,7 @@ let
       "--update-latest-path" "$HOME/.local/share/Daedalus/${cluster}/installer.sh"
       "--keyfile" "Secrets/secret.key"
       "--wallet-db-path" "Wallet/"
-      "--update-server" "http://update-cardano-mainnet.iohk.io"
+      "--update-server" "https://update-cardano-mainnet.iohk.io"
       "--update-with-package"
       "--tlscert" "tls/server/server.crt"
       "--tlskey" "tls/server/server.key"

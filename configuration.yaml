@@ -14906,7 +14906,7 @@ devnet_macos64:
   update:
     <<:
     applicationName: csl-daedalus
-    applicationVersion: 2
+    applicationVersion: 3
     lastKnownBlockVersion:
       bvMajor: 0
       bvMinor: 0
