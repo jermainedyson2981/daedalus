@@ -57,7 +57,7 @@ let
         relays:
           [
             [
-              { addr: 13.230.169.36 }
+              { addr: 54.238.11.206 }
             ]
           ]
         valency: 1
@@ -89,7 +89,7 @@ let
       "--topology" "${configFiles}/topology.yaml"
       "--wallet-address" "127.0.0.1:8090"
       "--logs-prefix" "Logs"
-      "--system-start" "1523531058"
+      "--system-start" "1523630524"
     ];
     nodeDbPath = "DB/";
     nodeLogConfig = "${configFiles}/daedalus.yaml";
@@ -98,7 +98,7 @@ let
     configuration = {
       filePath = "${configFiles}/configuration.yaml";
       key = perClusterConfig.${cluster}.key;
-      systemStart = 1523531058;
+      systemStart = 1523630524;
       seed = null;
     };
     updaterPath = "/bin/update-runner";
