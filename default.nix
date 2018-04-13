@@ -71,9 +71,11 @@ let
         -e "s+INSERT_ICON_PATH_HERE+''${DAEDALUS_DIR}/icon.png+g" \
         > "''${XDG_DATA_HOME}/applications/Daedalus.desktop"
     '';
-    newBundle = (import ./installers/nix/nix-installer.nix {
+    newBundle = let
+      daedalus' = self.daedalus.override { sandboxed = true; };
+    in (import ./installers/nix/nix-installer.nix {
       installationSlug = installPath;
-      installedPackages = [ self.daedalus self.postInstall self.namespaceHelper ];
+      installedPackages = [ daedalus' self.postInstall self.namespaceHelper daedalus'.cfg self.daedalus-bridge daedalus'.daedalus_frontend ];
       postInstall = self.postInstall;
       nix-bundle = self.nix-bundle;
     }).installerBundle;

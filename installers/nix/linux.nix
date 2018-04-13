@@ -1,5 +1,5 @@
 { stdenv, runCommand, writeText, writeScriptBin, fetchurl, fetchFromGitHub, openssl, electron,
-coreutils, utillinux, procps, cluster,
+coreutils, utillinux, procps, cluster, sandboxed ? false,
 rawapp, daedalus-bridge }:
 
 let
@@ -86,22 +86,22 @@ let
       "--tlscert" "tls/server/server.crt"
       "--tlskey" "tls/server/server.key"
       "--tlsca" "tls/ca/ca.crt"
-      "--topology" "${configFiles}/topology.yaml"
+      "--topology" (if sandboxed then "/nix/var/nix/profiles/profile/etc/topology.yaml" else "${configFiles}/topology.yaml")
       "--wallet-address" "127.0.0.1:8090"
       "--logs-prefix" "Logs"
       "--system-start" "1523630524"
     ];
     nodeDbPath = "DB/";
-    nodeLogConfig = "${configFiles}/daedalus.yaml";
+    nodeLogConfig = if sandboxed then "/nix/var/nix/profiles/profile/etc/daedalus.yaml" else "${configFiles}/daedalus.yaml";
     nodeLogPath = "$HOME/.local/share/Daedalus/${cluster}/Logs/cardano-node.log";
     reportServer = "http://report-server.cardano-mainnet.iohk.io:8080";
     configuration = {
-      filePath = "${configFiles}/configuration.yaml";
+      filePath = if sandboxed then "/nix/var/nix/profiles/profile/etc/configuration.yaml" else "${configFiles}/configuration.yaml";
       key = perClusterConfig.${cluster}.key;
       systemStart = 1523630524;
       seed = null;
     };
-    updaterPath = "/bin/update-runner";
+    updaterPath = if sandboxed then "/bin/update-runner" else "/no-updates";
     updateArchive = "$HOME/.local/share/Daedalus/${cluster}/installer.sh";
     updateWindowsRunner = null;
     nodeTimeoutSec = 30;
@@ -114,7 +114,10 @@ let
 
     set -xe
 
-    export PATH="${daedalus_frontend}/bin/:${daedalus-bridge}/bin:$PATH"
+    ${if sandboxed then ''
+    '' else ''
+      export PATH="${daedalus_frontend}/bin/:${daedalus-bridge}/bin:$PATH"
+    ''}
 
     test -z "$XDG_DATA_HOME" && { XDG_DATA_HOME="''${HOME}/.local/share"; }
     export CLUSTER=${cluster}
@@ -129,6 +132,14 @@ let
       cp tls/server/server.crt tls/ca/ca.crt
     fi
     exec ${daedalus-bridge}/bin/cardano-launcher \
-      --config ${launcherConfig}
+      --config ${if sandboxed then "/nix/var/nix/profiles/profile/etc/launcher.json" else launcherConfig}
   '';
-in daedalus
+  wrappedConfig = runCommand "launcher-config" {} ''
+    mkdir -pv $out/etc/
+    cp ${launcherConfig} $out/etc/launcher.json
+    cp ${configFiles}/* $out/etc/
+  '';
+in daedalus // {
+  cfg = wrappedConfig;
+  inherit daedalus_frontend;
+}
