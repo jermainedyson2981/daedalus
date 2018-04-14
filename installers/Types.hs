@@ -30,6 +30,7 @@ import qualified Universum
 
 import           Filesystem.Path.CurrentOS           (FilePath)
 import           Prelude                      hiding (FilePath)
+import           GHC.Stack                           (HasCallStack)
 
 
 
@@ -42,6 +43,7 @@ data OS
 data Cluster
   = Mainnet
   | Staging
+  | Devnet
   deriving (Bounded, Enum, Eq, Read, Show)
 
 data Config
@@ -76,5 +78,5 @@ testInstaller    False  = DontTestInstaller
 lshowText :: Show a => a -> Text
 lshowText = toLower . Universum.show
 
-errorT :: Text -> a
+errorT :: HasCallStack => Text -> a
 errorT = error . unpack

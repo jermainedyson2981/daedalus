@@ -42,6 +42,7 @@ import           Turtle.Options
 import           Prelude                      hiding (FilePath, unlines, writeFile)
 import           Types
 import           Debug.Trace
+import           GHC.Stack                           (HasCallStack)
 
 
 
@@ -53,14 +54,14 @@ import           Debug.Trace
 -- [Bar,Baz]
 -- λ> fmap ((fmap toLower) . show) x
 -- ["bar","baz"]
-diagReadCaseInsensitive :: (Bounded a, Enum a, Read a, Show a) => String -> Maybe a
+diagReadCaseInsensitive :: (HasCallStack, Bounded a, Enum a, Read a, Show a) => String -> Maybe a
 diagReadCaseInsensitive str = diagRead $ toLower $ pack str
   where mapping    = Map.fromList [ (lshowText x, x) | x <- enumFromTo minBound maxBound ]
         diagRead x = Just $ flip fromMaybe (Map.lookup x mapping)
                      (errorT $ format ("Couldn't parse '"%s%"' as one of: "%s)
                                (pack str) (intercalate ", " $ Map.keys mapping))
 
-optReadLower :: (Bounded a, Enum a, Read a, Show a) => ArgName -> ShortName -> Optional HelpMessage -> Parser a
+optReadLower :: (HasCallStack, Bounded a, Enum a, Read a, Show a) => ArgName -> ShortName -> Optional HelpMessage -> Parser a
 optReadLower = opt (diagReadCaseInsensitive . unpack)
 argReadLower :: (Bounded a, Enum a, Read a, Show a) => ArgName -> Optional HelpMessage -> Parser a
 argReadLower = arg (diagReadCaseInsensitive . unpack)

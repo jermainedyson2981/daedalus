@@ -3,7 +3,7 @@
 { configuration  =
     { filePath     = os.configurationYaml
     , key          = "${cluster.keyPrefix}_${os.name}"
-    , systemStart  = [] : Optional Integer
+    , systemStart  = [ 1523630524 ] : Optional Integer
     , seed         = [] : Optional Integer
     }
 , nodeTimeoutSec = 60
