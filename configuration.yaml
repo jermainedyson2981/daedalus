@@ -14943,7 +14943,7 @@ devnet_linux64:
   update:
     <<:
     applicationName: csl-daedalus
-    applicationVersion: 3
+    applicationVersion: 4
     lastKnownBlockVersion:
       bvMajor: 0
       bvMinor: 0
