@@ -12,7 +12,7 @@ let
   daedalus-config = runCommand "daedalus-config" {} ''
     mkdir -pv $out
     cd $out
-    cp -vi ${daedalus-bridge}/config/configuration.yaml configuration.yaml
+    cp -vi ${../../configuration.yaml} configuration.yaml
     ## TODO: we don't need both of those genesis files (even if file names sound cool),
     ##       but the choice would have to be made in the Dhall-generated files,
     ##       splitting the dep chain further:
