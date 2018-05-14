@@ -1,0 +1,54 @@
+#!/bin/sh
+
+msgvar() {
+        local var="$1"
+        printf "  --( %15s is:  '%s'\n" "${var}" "${!var}"
+}
+compute() {
+        local name="$1" val="$2"
+        eval "${name}='${val}'"
+        msgvar "${name}"
+}
+present_file() {
+        local name="$1"
+        local line="#####################################################################"
+        echo $line
+        echo "##"
+        echo "##  ${name}:  ${!name}"
+        echo "##"
+        echo $line
+        cat ${!name}
+        echo
+}
+
+compute LAUNCH_PHASE1       "$(which daedalus | xargs realpath)"
+compute CHROOT              "$(realpath ~/.daedalus)"
+compute NIXROOT             "$(realpath ${CHROOT})"
+
+comp_chropath() {
+        local name="$1" val="$2"
+        compute "${name}" "$(realpath "${NIXROOT}${val}")"
+}
+comp_chropath CHREL_PROF    "/nix/var/nix/profiles/profile"
+compute PROF                "$(realpath ${CHROOT}/${CHREL_PROF})"
+
+comp_profpath() {
+        local name="$1" val="$2"
+        compute "${name}"   "$(realpath ${CHROOT}$(readlink "${PROF}${val}"))"
+}
+comp_profpath LAUNCH_PHASE2 "/bin/enter-phase2"
+comp_profpath LAUNCH_PHASE3 "/bin/daedalus"
+
+comp_chropath LAUNCHER      "$(grep cardano-launcher ${LAUNCH_PHASE3} | cut -d' ' -f2)"
+comp_profpath PROF_LAUNCF   "/etc/launcher-config.yaml"
+
+comp_profpath NODE          "/bin/cardano-node"
+comp_profpath FRONTEND      "/bin/daedalus-frontend"
+
+################
+
+echo
+present_file LAUNCH_PHASE1
+present_file LAUNCH_PHASE2
+present_file LAUNCH_PHASE3
+present_file PROF_LAUNCF
