@@ -10,6 +10,7 @@ let
     cp ${openssl}/bin/openssl $out/bin/
   '';
   daedalus-config = runCommand "daedalus-config" {} ''
+    echo "~~~ Generating Daedalus configuration"
     mkdir -pv $out
     cd $out
     cp -vi ${daedalus-bridge}/config/configuration.yaml configuration.yaml
@@ -60,6 +61,7 @@ let
       --config ${if sandboxed then "/nix/var/nix/profiles/profile/etc/launcher-config.yaml" else "${daedalus-config}/launcher-config.yaml"}
   '';
   wrappedConfig = runCommand "launcher-config" {} ''
+    echo "~~~ Generating wrapped configuration"
     mkdir -pv $out/etc/
     cp ${daedalus-config}/* $out/etc/
   '';
