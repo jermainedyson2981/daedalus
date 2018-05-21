@@ -6,7 +6,7 @@
 
 set -e
 
-CLUSTERS="$(cat $(dirname $0)/../installer-clusters.cfg | xargs echo -n)"
+CLUSTERS="$(xargs echo -n < "$(dirname "$0")"/../installer-clusters.cfg)"
 
 usage() {
     test -z "$1" || { echo "ERROR: $*" >&2; echo >&2; }
@@ -34,18 +34,8 @@ EOF
     test -z "$1" || exit 1
 }
 
-arg2nz() { test $# -ge 2 -a ! -z "$2" || usage "empty value for" $1; }
+arg2nz() { test $# -ge 2 -a ! -z "$2" || usage "empty value for" "$1"; }
 fail() { echo "ERROR: $*" >&2; exit 1; }
-retry() {
-        local tries=$1; arg2nz "iteration count" $1; shift
-        for i in $(seq 1 ${tries})
-        do if "$@"
-           then return 0
-           fi
-           sleep 5s
-        done
-        fail "persistent failure to exec:  $*"
-}
 
 ###
 ### Argument processing
@@ -64,7 +54,7 @@ fi
 
 case "$(uname -s)" in
         Darwin ) OS_NAME=darwin; os=osx;   key=macos-3.p12;;
-        Linux )  OS_NAME=linux;  os=linux; key=linux.p12;;
+        Linux )  OS_NAME=linux; export OS_NAME;  os=linux; export os; key=linux.p12; export key;;
         * )     usage "Unsupported OS: $(uname -s)";;
 esac
 
@@ -72,9 +62,9 @@ set -u ## Undefined variable firewall enabled
 while test $# -ge 1
 do case "$1" in
            --clusters )                                     CLUSTERS="$2"; shift;;
-           --fast-impure )                               fast_impure=true;;
-           --build-id )       arg2nz "build identifier" $2; build_id="$2"; shift;;
-           --nix-path )       arg2nz "NIX_PATH value" $2;
+           --fast-impure )                               fast_impure=true; export fast_impure;;
+           --build-id )       arg2nz "build identifier" "$2"; build_id="$2"; shift;;
+           --nix-path )       arg2nz "NIX_PATH value" "$2";
                                                      export NIX_PATH="$2"; shift;;
            --test-installer )                         test_installer="--test-installer";;
 
@@ -94,6 +84,7 @@ then set -x
 fi
 
 daedalus_version="${1:-dev}"
+export daedalus_version
 
 mkdir -p ~/.local/bin
 
@@ -109,7 +100,7 @@ ARTIFACT_BUCKET=ci-output-sink
 # Build/get cardano bridge which is used by make-installer
 DAEDALUS_BRIDGE=$(nix-build --no-out-link cardano-sl.nix -A daedalus-bridge)
 
-cd installers
+pushd installers
     echo '~~~ Prebuilding dependencies for cardano-installer, quietly..'
     $nix_shell default.nix --run true || echo "Prebuild failed!"
     echo '~~~ Building the cardano installer generator..'
@@ -118,7 +109,8 @@ cd installers
     for cluster in ${CLUSTERS}
     do
           echo "~~~ Generating installer for cluster ${cluster}.."
-          DAEDALUS_CLUSTER=${cluster}
+          DAEDALUS_CLUSTER="${cluster}"
+          export DAEDALUS_CLUSTER
           APP_NAME="csl-daedalus"
           rm -rf ${APP_NAME}
 
@@ -134,17 +126,17 @@ cd installers
                   then
                           echo "~~~ Uploading the installer package.."
                           export PATH=${BUILDKITE_BIN_PATH:-}:$PATH
-                          buildkite-agent artifact upload "${APP_NAME}/*" s3://${ARTIFACT_BUCKET} --job $BUILDKITE_JOB_ID
+                          buildkite-agent artifact upload "${APP_NAME}/*" "s3://${ARTIFACT_BUCKET}" --job "$BUILDKITE_JOB_ID"
                           mv "launcher-config.yaml" "launcher-config-${cluster}.macos64.yaml"
                           mv "wallet-topology.yaml" "wallet-topology-${cluster}.macos64.yaml"
-                          buildkite-agent artifact upload "launcher-config-${cluster}.macos64.yaml" s3://${ARTIFACT_BUCKET} --job $BUILDKITE_JOB_ID
-                          buildkite-agent artifact upload "wallet-topology-${cluster}.macos64.yaml" s3://${ARTIFACT_BUCKET} --job $BUILDKITE_JOB_ID
+                          buildkite-agent artifact upload "launcher-config-${cluster}.macos64.yaml" "s3://${ARTIFACT_BUCKET}" --job "$BUILDKITE_JOB_ID"
+                          buildkite-agent artifact upload "wallet-topology-${cluster}.macos64.yaml" "s3://${ARTIFACT_BUCKET}" --job "$BUILDKITE_JOB_ID"
                           rm -rf "${APP_NAME}"
                   fi
           else
                   echo "Installer was not made."
           fi
     done
-cd ..
+popd || exit 1
 
 exit 0
